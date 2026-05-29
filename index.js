@@ -18,7 +18,6 @@ const ROLES  = ['basic','pro','premium','vip','vvip'];
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Active WS connections ────────────────────────────
 // attackerId  → { ws, role, username }
