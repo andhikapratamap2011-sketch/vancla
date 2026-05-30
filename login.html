@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VANCLA — Owner Login</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:'Inter',sans-serif;background:linear-gradient(135deg,#02060f,#060d1a)}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(245,158,11,.06),transparent 60%);pointer-events:none}
+.box{width:100%;max-width:360px;background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid rgba(245,158,11,.2);border-radius:20px;padding:38px 30px;text-align:center;box-shadow:0 0 60px rgba(245,158,11,.08)}
+.icon{width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:30px;color:#02060f;box-shadow:0 0 30px rgba(245,158,11,.3)}
+.title{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#f59e0b;letter-spacing:3px;margin-bottom:4px}
+.sub{font-size:10px;color:#64748b;letter-spacing:2px;margin-bottom:30px;font-family:'JetBrains Mono',monospace}
+.inp{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(245,158,11,.2);border-radius:11px;padding:13px 16px;color:#e2e8f0;font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:all .2s;margin-bottom:13px}
+.inp:focus{border-color:rgba(245,158,11,.55);box-shadow:0 0 0 3px rgba(245,158,11,.07)}
+.inp::placeholder{color:#475569}
+.btn{width:100%;padding:14px;border-radius:11px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#02060f;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(245,158,11,.3);transition:all .2s;letter-spacing:.5px}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.6;pointer-events:none}
+.err{font-size:12px;color:#ef4444;margin-top:12px;text-align:center;display:none;font-family:'JetBrains Mono',monospace;letter-spacing:.3px}
+</style>
+</head>
+<body>
+<div class="box" id="box">
+  <div class="icon"><i class="fa-solid fa-crown"></i></div>
+  <div class="title">VANCLA</div>
+  <div class="sub">OWNER PANEL</div>
+  <input class="inp" type="text"     id="u" placeholder="Username" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+  <input class="inp" type="password" id="p" placeholder="Password" autocomplete="off">
+  <button class="btn" id="btn" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> LOGIN</button>
+  <div class="err" id="err"></div>
+</div>
+
+<script>
+// ── KREDENSIAL OWNER ──────────────────────────────
+var OWNER_USER = 'VANCLA2026';
+var OWNER_PASS = 'VANCLA2K26';
+
+function doLogin() {
+  var u   = document.getElementById('u').value.trim();
+  var p   = document.getElementById('p').value.trim();
+  var err = document.getElementById('err');
+  var btn = document.getElementById('btn');
+  err.style.display = 'none';
+
+  if (!u || !p) {
+    showErr('Isi username dan password');
+    return;
+  }
+
+  if (u === OWNER_USER && p === OWNER_PASS) {
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Masuk...';
+    btn.disabled  = true;
+    // Ambil JWT dari server untuk API calls
+    fetch('/api/owner/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ username: u, password: p })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        try { sessionStorage.setItem('owner_tok', data.token); } catch(e) {}
+        window.location.href = '/dashboard';
+      } else {
+        btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> LOGIN';
+        btn.disabled  = false;
+        showErr('Gagal mendapatkan sesi. Coba lagi.');
+      }
+    })
+    .catch(function() {
+      // Fallback: simpan flag tanpa JWT (untuk testing offline)
+      try { sessionStorage.setItem('owner_tok', 'local'); } catch(e) {}
+      window.location.href = '/dashboard';
+    });
+  } else {
+    showErr('Username atau password salah');
+    document.getElementById('p').value = '';
+    document.getElementById('p').focus();
+  }
+}
+
+function showErr(msg) {
+  var err = document.getElementById('err');
+  err.textContent = '<i class="fa-solid fa-circle-exclamation"></i> ' + msg;
+  err.innerHTML   = '<i class="fa-solid fa-circle-exclamation"></i> ' + msg;
+  err.style.display = 'block';
+  // Shake
+  var box = document.getElementById('box');
+  var i = 0;
+  var iv = setInterval(function() {
+    box.style.transform = i % 2 === 0 ? 'translateX(-7px)' : 'translateX(7px)';
+    if (++i > 5) { clearInterval(iv); box.style.transform = 'none'; }
+  }, 60);
+}
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+
+// Auto-redirect jika sudah login
+try {
+  if (sessionStorage.getItem('owner_tok')) window.location.href = '/dashboard';
+} catch(e) {}
+</script>
+</body>
+</html>
