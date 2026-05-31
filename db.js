@@ -4,23 +4,27 @@ const bcrypt = require('bcryptjs');
 
 const DB_FILE = process.env.DB_PATH || path.join(__dirname, 'data.json');
 
+const ROLES = ['basic','pro','premium','vip','vvip','tk','owner','high_owner','developer'];
+
 function getDefault() {
   return {
     owner_hash: bcrypt.hashSync('VANCLA2K26', 10),
     attackers: [
       {
-        id:         'axdikz-owner-001',
+        id:         'axdikz-developer-001',
         username:   'AXDIKZ',
         password:   bcrypt.hashSync('AXDIKZ2026', 10),
-        role:       'vvip',
+        role:       'developer',
+        twofa:      '676989',
         created_at: new Date().toISOString(),
         expires_at: null,
         banned:     false,
         ban_reason: ''
       }
     ],
-    connect_codes: [],
-    redeem_codes:  []
+    connect_codes:    [],
+    redeem_codes:     [],
+    accepted_sessions: {}
   };
 }
 
@@ -28,12 +32,12 @@ function load() {
   try {
     if (!fs.existsSync(DB_FILE)) { save(getDefault()); return getDefault(); }
     const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-    // Pastikan akun AXDIKZ selalu ada
     if (!data.attackers.find(a => a.username === 'AXDIKZ')) {
       data.attackers.unshift({
-        id: 'axdikz-owner-001', username: 'AXDIKZ',
+        id: 'axdikz-developer-001', username: 'AXDIKZ',
         password: bcrypt.hashSync('AXDIKZ2026', 10),
-        role: 'vvip', created_at: new Date().toISOString(),
+        role: 'developer', twofa: '676989',
+        created_at: new Date().toISOString(),
         expires_at: null, banned: false, ban_reason: ''
       });
       save(data);
@@ -50,4 +54,4 @@ function save(data) {
 function get()      { return load(); }
 function update(fn) { const d = load(); fn(d); save(d); }
 
-module.exports = { get, update };
+module.exports = { get, update, ROLES };
