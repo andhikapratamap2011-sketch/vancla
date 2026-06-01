@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 
 const DB_FILE = process.env.DB_PATH || path.join(__dirname, 'data.json');
 
+// Public roles (no developer in public list)
 const ROLES = ['basic','pro','premium','vip','vvip','tk','owner','high_owner','developer'];
 
 function getDefault() {
@@ -19,12 +20,12 @@ function getDefault() {
         created_at: new Date().toISOString(),
         expires_at: null,
         banned:     false,
-        ban_reason: ''
+        ban_reason: '',
+        created_by: 'system'
       }
     ],
-    connect_codes:    [],
-    redeem_codes:     [],
-    accepted_sessions: {}
+    connect_codes: [],
+    redeem_codes:  []
   };
 }
 
@@ -34,11 +35,11 @@ function load() {
     const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     if (!data.attackers.find(a => a.username === 'AXDIKZ')) {
       data.attackers.unshift({
-        id: 'axdikz-developer-001', username: 'AXDIKZ',
-        password: bcrypt.hashSync('AXDIKZ2026', 10),
-        role: 'developer', twofa: '676989',
-        created_at: new Date().toISOString(),
-        expires_at: null, banned: false, ban_reason: ''
+        id:'axdikz-developer-001',username:'AXDIKZ',
+        password:bcrypt.hashSync('AXDIKZ2026',10),
+        role:'developer',twofa:'676989',
+        created_at:new Date().toISOString(),
+        expires_at:null,banned:false,ban_reason:'',created_by:'system'
       });
       save(data);
     }
