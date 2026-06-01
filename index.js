@@ -243,25 +243,50 @@ app.post('/api/attacker/verify2fa',(req,res)=>{
   }catch(e){res.json({success:false,message:'Token invalid'});}
 });
 
-app.post('/api/attacker/codes',auth,(req,res)=>{
-  const db=DBget();
-  const attacker=db.attackers.find(x=>x.id===req.user.id);
-  if(!attacker)return res.json({success:false,message:'Not found'});
+app.post('/api/attacker/codes', auth, (req, res) => {
+  const db = DBget();
+  const attacker = db.attackers.find(x => x.id === req.user.id);
+  if (!attacker) return res.json({ success: false, message: 'Not found' });
 
-  const limit=ROLE_CODE_LIMITS[attacker.role]||3;
-  const todayCount=countTodayCodes(db,req.user.id);
-  if(todayCount>=limit){
-    return res.json({success:false,message:`Limit harian ${limit} kode sudah tercapai`,limit_reached:true,limit,used:todayCount});
+  const limit = ROLE_CODE_LIMITS[attacker.role] || 3;
+
+  // FIX BUG 2: gunakan counter terpisah, TIDAK dari array connect_codes
+  // Counter hanya naik, tidak turun saat kode dihapus
+  const today = new Date().toDateString();
+  if (!attacker.daily_codes) attacker.daily_codes = {};
+  const todayCount = attacker.daily_codes[today] || 0;
+
+  if (todayCount >= limit) {
+    return res.json({
+      success: false,
+      message: `Limit harian ${limit} kode sudah tercapai`,
+      limit_reached: true, limit, used: todayCount
+    });
   }
 
-  DBupdate(db=>{
-    let code,tries=0;
-    do{code=Math.floor(100000+Math.random()*900000).toString();tries++;}
-    while(db.connect_codes.find(c=>c.code===code)&&tries<100);
-    const c={id:uuid(),code,attacker_id:req.user.id,attacker_username:req.user.username,created_at:new Date().toISOString(),expires_at:new Date(Date.now()+24*3600000).toISOString()};
+  DBupdate(db => {
+    const a = db.attackers.find(x => x.id === req.user.id);
+    if (!a.daily_codes) a.daily_codes = {};
+    const t = new Date().toDateString();
+    // Increment permanent counter
+    a.daily_codes[t] = (a.daily_codes[t] || 0) + 1;
+
+    let code, tries = 0;
+    do {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+      tries++;
+    } while (db.connect_codes.find(c => c.code === code) && tries < 100);
+
+    const c = {
+      id: uuid(), code,
+      attacker_id: req.user.id,
+      attacker_username: req.user.username,
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 24 * 3600000).toISOString()
+    };
     db.connect_codes.push(c);
-    const newCount=countTodayCodes(db,req.user.id);
-    res.json({success:true,code,expires_at:c.expires_at,used:newCount,limit});
+    const newUsed = a.daily_codes[t];
+    res.json({ success: true, code, expires_at: c.expires_at, used: newUsed, limit });
   });
 });
 
